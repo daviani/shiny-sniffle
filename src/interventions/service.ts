@@ -152,7 +152,12 @@ export class InterventionService {
     );
   }
 
-  private assertSiteAccess(actor: Actor, siteId: string): void {
+  assertInterventionAccess(actor: Actor, id: string): void {
+    const intervention = this.getById(id);
+    this.assertSiteAccess(actor, intervention.siteId);
+  }
+
+  assertSiteAccess(actor: Actor, siteId: string): void {
     if (
       actor.role === "TECHNICIEN" &&
       !actor.siteIds.includes(siteId)

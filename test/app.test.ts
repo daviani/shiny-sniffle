@@ -76,6 +76,39 @@ describe("identity and site access", () => {
     expect(listing.statusCode).toBe(403);
   });
 
+  test("site authorization precedes unrelated creation validation", async () => {
+    const app = testApp();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/interventions",
+      headers: { "x-actor-id": "tech-1" },
+      payload: {
+        siteId: "site-b",
+        equipment: "pump-7",
+        technicianId: "tech-2",
+        startsAtParis: "2026-01-15T09:00",
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  test.each(["interventions", "interventions.csv"])(
+    "site authorization precedes invalid filters on %s",
+    async (resource) => {
+      const app = testApp();
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/sites/site-b/${resource}?status=INVALID`,
+        headers: { "x-actor-id": "tech-1" },
+      });
+
+      expect(response.statusCode).toBe(403);
+    },
+  );
+
   test("a technician cannot mutate an intervention on another site", async () => {
     const app = testApp();
     const creation = await createIntervention(app, "manager-1", {
@@ -87,6 +120,23 @@ describe("identity and site access", () => {
       method: "POST",
       url: `/interventions/${creation.json().id}/start`,
       headers: { "x-actor-id": "tech-1" },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  test("intervention authorization precedes duration payload validation", async () => {
+    const app = testApp();
+    const creation = await createIntervention(app, "manager-1", {
+      siteId: "site-b",
+      technicianId: "tech-2",
+    });
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/interventions/${creation.json().id}/duration`,
+      headers: { "x-actor-id": "tech-1" },
+      payload: {},
     });
 
     expect(response.statusCode).toBe(403);

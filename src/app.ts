@@ -47,10 +47,10 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   app.get("/health", async () => ({ status: "ok" }));
 
   app.post("/interventions", async (request, reply) => {
-    const intervention = service.create(
-      actorFrom(request),
-      parseCreateInput(request.body),
-    );
+    const actor = actorFrom(request);
+    const body = requiredObject(request.body);
+    service.assertSiteAccess(actor, requiredString(body, "siteId"));
+    const intervention = service.create(actor, parseCreateInput(body));
     return reply.code(201).send(toResponse(intervention));
   });
 
@@ -62,14 +62,17 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
 
   app.patch<{ Params: InterventionParams }>(
     "/interventions/:id/duration",
-    async (request) =>
-      toResponse(
+    async (request) => {
+      const actor = actorFrom(request);
+      service.assertInterventionAccess(actor, request.params.id);
+      return toResponse(
         service.setDuration(
-          actorFrom(request),
+          actor,
           request.params.id,
           requiredNumber(requiredObject(request.body), "durationHours"),
         ),
-      ),
+      );
+    },
   );
 
   app.post<{ Params: InterventionParams }>(
@@ -80,21 +83,26 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
 
   app.get<{ Params: SiteParams; Querystring: ListQuery }>(
     "/sites/:siteId/interventions",
-    async (request) =>
-      service
+    async (request) => {
+      const actor = actorFrom(request);
+      service.assertSiteAccess(actor, request.params.siteId);
+      return service
         .listBySite(
-          actorFrom(request),
+          actor,
           request.params.siteId,
           parseFilters(request.query),
         )
-        .map(toResponse),
+        .map(toResponse);
+    },
   );
 
   app.get<{ Params: SiteParams; Querystring: ListQuery }>(
     "/sites/:siteId/interventions.csv",
     async (request, reply) => {
+      const actor = actorFrom(request);
+      service.assertSiteAccess(actor, request.params.siteId);
       const interventions = service.listBySite(
-        actorFrom(request),
+        actor,
         request.params.siteId,
         parseFilters(request.query),
       );
