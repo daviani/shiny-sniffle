@@ -105,6 +105,32 @@ describe("business rules", () => {
     );
   });
 
+  test.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+    "a stored invalid duration %s cannot permit closure",
+    (durationHours) => {
+      const repository = new InMemoryInterventionRepository();
+      const service = new InterventionService(repository, () => "unused");
+      repository.save({
+        id: "corrupted-intervention",
+        siteId: "site-a",
+        equipment: "pump-7",
+        technicianId: "tech-1",
+        startsAtUtc: "2026-01-15T08:00:00Z",
+        durationHours,
+        description: "Imported legacy record",
+        status: "OUVERTE",
+      });
+
+      expectDomainError(
+        () => service.close(technicianA, "corrupted-intervention"),
+        "CONFLICT",
+      );
+      expect(repository.findById("corrupted-intervention")?.status).toBe(
+        "OUVERTE",
+      );
+    },
+  );
+
   test("an authorized technician sets a positive duration before closure", () => {
     const service = buildService();
     const intervention = service.create(technicianA, validInput());

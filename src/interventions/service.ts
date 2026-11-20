@@ -82,10 +82,10 @@ export class InterventionService {
       throw new DomainError("CONFLICT", "Intervention is already closed");
     }
 
-    if (intervention.durationHours === undefined) {
+    if (!this.isValidDuration(intervention.durationHours)) {
       throw new DomainError(
         "CONFLICT",
-        "An intervention needs a duration before it can be closed",
+        "An intervention needs a valid duration before it can be closed",
       );
     }
 
@@ -134,12 +134,22 @@ export class InterventionService {
   }
 
   private assertValidDuration(durationHours: number): void {
-    if (!Number.isFinite(durationHours) || durationHours <= 0) {
+    if (!this.isValidDuration(durationHours)) {
       throw new DomainError(
         "VALIDATION",
         "Duration must be a finite number greater than zero",
       );
     }
+  }
+
+  private isValidDuration(
+    durationHours: number | undefined,
+  ): durationHours is number {
+    return (
+      durationHours !== undefined &&
+      Number.isFinite(durationHours) &&
+      durationHours > 0
+    );
   }
 
   private assertSiteAccess(actor: Actor, siteId: string): void {
