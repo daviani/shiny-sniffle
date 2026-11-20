@@ -12,17 +12,25 @@ export class InMemoryInterventionRepository
   private readonly interventions = new Map<string, Intervention>();
 
   save(intervention: Intervention): Intervention {
-    this.interventions.set(intervention.id, intervention);
-    return intervention;
+    const stored = copyIntervention(intervention);
+    this.interventions.set(stored.id, stored);
+    return copyIntervention(stored);
   }
 
   findById(id: string): Intervention | undefined {
-    return this.interventions.get(id);
+    const intervention = this.interventions.get(id);
+    return intervention === undefined
+      ? undefined
+      : copyIntervention(intervention);
   }
 
   listBySite(siteId: string): Intervention[] {
-    return [...this.interventions.values()].filter(
-      (intervention) => intervention.siteId === siteId,
-    );
+    return [...this.interventions.values()]
+      .filter((intervention) => intervention.siteId === siteId)
+      .map(copyIntervention);
   }
+}
+
+function copyIntervention(intervention: Intervention): Intervention {
+  return { ...intervention };
 }

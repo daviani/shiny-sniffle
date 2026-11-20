@@ -349,3 +349,28 @@ describe("listing filters", () => {
     ]);
   });
 });
+
+describe("repository isolation", () => {
+  test("mutating the creation result does not change stored data", () => {
+    const service = buildService();
+    const created = service.create(technicianA, validInput());
+
+    created.description = "Tampered outside the service";
+
+    expect(service.listBySite(technicianA, "site-a", {})[0]?.description).toBe(
+      "Inspect the feed pump",
+    );
+  });
+
+  test("mutating a listed result does not change stored data", () => {
+    const service = buildService();
+    service.create(technicianA, validInput());
+    const listed = service.listBySite(technicianA, "site-a", {});
+
+    listed[0]!.status = "CLOSE";
+
+    expect(service.listBySite(technicianA, "site-a", {})[0]?.status).toBe(
+      "OUVERTE",
+    );
+  });
+});
