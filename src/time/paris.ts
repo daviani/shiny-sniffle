@@ -20,6 +20,10 @@ export function parisLocalToUtc(value: string): string {
     throw invalidDate(value);
   }
 
+  if (paris.getPossibleOffsets().length !== 1) {
+    throw invalidDate(value);
+  }
+
   const utc = paris.toUTC().toISO({ suppressMilliseconds: true });
   if (utc === null) {
     throw invalidDate(value);

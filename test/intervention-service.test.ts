@@ -299,6 +299,13 @@ describe("Paris time", () => {
       expectDomainError(() => parisLocalToUtc(value), "VALIDATION");
     },
   );
+
+  test("rejects an ambiguous Paris time during the autumn transition", () => {
+    expectDomainError(
+      () => parisLocalToUtc("2026-10-25T02:30"),
+      "VALIDATION",
+    );
+  });
 });
 
 describe("listing filters", () => {

@@ -53,7 +53,7 @@ curl -sS http://localhost:3000/interventions \
   }'
 ```
 
-Dates are entered as `yyyy-MM-ddTHH:mm` in `Europe/Paris`. Responses and CSV contain the Paris offset applicable to that date. Period bounds are inclusive.
+Dates are entered as `yyyy-MM-ddTHH:mm` in `Europe/Paris`. Responses and CSV contain the Paris offset applicable to that date. Nonexistent spring times and ambiguous autumn times are rejected. Period bounds are inclusive.
 
 Example filters:
 
