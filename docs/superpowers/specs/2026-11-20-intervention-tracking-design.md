@@ -69,7 +69,7 @@ Unknown actors receive `401`. Site membership is never accepted from request hea
 
 ## Time model
 
-Inputs use the local format `yyyy-MM-dd'T'HH:mm` with no offset and are interpreted in `Europe/Paris`. The domain stores UTC ISO instants. API and CSV outputs convert those instants back to Paris and include the applicable offset. Invalid local values, including spring-forward times that Luxon normalizes to another wall-clock value, are rejected.
+Inputs use the local format `yyyy-MM-dd'T'HH:mm` with no offset and are interpreted in `Europe/Paris`. The domain stores UTC ISO instants. API and CSV outputs convert those instants back to Paris and include the applicable offset. Invalid local values, including nonexistent spring-forward times and ambiguous autumn fallback times, are rejected.
 
 ## API
 
