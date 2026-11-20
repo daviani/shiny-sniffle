@@ -133,6 +133,16 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
       });
     }
 
+    if (isHttpClientError(error)) {
+      return reply.code(error.statusCode).send({
+        code:
+          error.statusCode === 415
+            ? "UNSUPPORTED_MEDIA_TYPE"
+            : "BAD_REQUEST",
+        message: error.message,
+      });
+    }
+
     return reply.code(500).send({
       code: "INTERNAL_ERROR",
       message: "Unexpected server error",
@@ -242,4 +252,16 @@ function statusFor(code: DomainError["code"]): 400 | 403 | 404 | 409 {
     case "CONFLICT":
       return 409;
   }
+}
+
+function isHttpClientError(
+  error: unknown,
+): error is Error & { statusCode: number } {
+  return (
+    error instanceof Error &&
+    "statusCode" in error &&
+    typeof error.statusCode === "number" &&
+    error.statusCode >= 400 &&
+    error.statusCode < 500
+  );
 }

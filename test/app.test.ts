@@ -266,6 +266,42 @@ describe("intervention workflow", () => {
     expect(response.statusCode).toBe(400);
     expect(response.json()).toMatchObject({ code: "VALIDATION" });
   });
+
+  test("preserves Fastify's bad-request status for invalid JSON", async () => {
+    const app = testApp();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/interventions",
+      headers: {
+        "content-type": "application/json",
+        "x-actor-id": "tech-1",
+      },
+      payload: '{"siteId":',
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  test("preserves Fastify's unsupported-media-type status", async () => {
+    const app = testApp();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/interventions",
+      headers: {
+        "content-type": "application/xml",
+        "x-actor-id": "tech-1",
+      },
+      payload: "<intervention />",
+    });
+
+    expect(response.statusCode).toBe(415);
+    expect(response.json()).toMatchObject({
+      code: "UNSUPPORTED_MEDIA_TYPE",
+    });
+  });
 });
 
 describe("CSV export", () => {
